@@ -7,15 +7,8 @@ const port = get('PORT').required().asPortNumber()
 const token = get('TOKEN').required().asString()
 const pathScripts = get('PATH_SCRIPTS').required().asString()
 
-app.post('/:script', (req: Request, res: Response) => {
+app.post('/', (req: Request, res: Response) => {
 	console.log('¡Webhook recibido!')
-
-	const { script } = req.params
-
-	if (!/^[a-zA-Z0-9_-]+$/.test(script)) {
-		res.status(400).send('Nombre de script inválido')
-		return
-	}
 
 	if (!req.query.token) {
 		res.status(403).send('No se envió el token')
@@ -27,7 +20,16 @@ app.post('/:script', (req: Request, res: Response) => {
 		return
 	}
 
-	const scriptPath = `${pathScripts}/${script}.sh`
+	const { repository: { name } } = req.body
+
+	console.log(name)
+
+	if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+		res.status(400).send('Nombre de script inválido')
+		return
+	}
+
+	const scriptPath = `${pathScripts}/${name}.sh`
 	console.log(`Ejecutando script: ${scriptPath}`)
 
 	exec(scriptPath, (error, stdout, stderr) => {
