@@ -8,7 +8,7 @@ const token = get('TOKEN').required().asString()
 const pathScripts = get('PATH_SCRIPTS').required().asString()
 
 app.post('/:script', (req: Request, res: Response) => {
-	console.log('Webhook recibido')
+	console.log('¡Webhook recibido!')
 
 	const { script } = req.params
 
