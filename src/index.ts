@@ -12,8 +12,6 @@ app.use(express.json())
 app.post('/', (req: Request, res: Response) => {
 	try {
 		console.log('¡Webhook recibido!')
-		console.log(req.body)
-		console.log(JSON.stringify(req.body))
 
 		if (!req.query.token) {
 			res.status(403).send('No se envió el token')
@@ -25,7 +23,19 @@ app.post('/', (req: Request, res: Response) => {
 			return
 		}
 
-		const { script } = req.params
+		const { push_data, repository } = req.body
+
+		if (!push_data || !repository) {
+			res.status(400).send('Petición incorrecta (faltan datos importantes)')
+			return
+		}
+
+		if (push_data.tag !== 'latest') {
+			res.status(400).send('Petición incorrecta (tag no es "latest")')
+			return
+		}
+
+		const script = repository.name
 
 		if (!/^[a-zA-Z0-9_-]+$/.test(script)) {
 			res.status(400).send('Nombre de script inválido')
@@ -35,19 +45,18 @@ app.post('/', (req: Request, res: Response) => {
 		const scriptPath = `${pathScripts}/${script}.sh`
 		console.log(`Ejecutando script: ${scriptPath}`)
 
-		// exec(scriptPath, (error, stdout, stderr) => {
-		// 	if (error) {
-		// 		console.error(`Error ejecutando el script: ${error.message}`)
-		// 		return res.status(500).send(`Error ejecutando el script: ${error.message}`)
-		// 	}
-		// 	if (stderr) {
-		// 		console.error(`stderr: ${stderr}`)
-		// 		return res.status(500).send(`stderr: ${stderr}`)
-		// 	}
-		// 	console.log(`stdout: ${stdout}`)
-		res.status(200).send('Webhook procesado y script ejecutado con éxito')
-		return
-		// })
+		exec(scriptPath, (error, stdout, stderr) => {
+			if (error) {
+				console.error(`Error ejecutando el script: ${error.message}`)
+				return res.status(500).send(`Error ejecutando el script: ${error.message}`)
+			}
+			if (stderr) {
+				console.error(`stderr: ${stderr}`)
+				return res.status(500).send(`stderr: ${stderr}`)
+			}
+			console.log(`stdout: ${stdout}`)
+			return res.status(200).send('Webhook procesado y script ejecutado con éxito')
+		})
 
 	} catch (error) {
 		console.error(error)
