@@ -7,11 +7,10 @@
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
 ARG NODE_VERSION=22.13.1
-ARG ALPINE_VERSION=3.18
 
 ################################################################################
 # Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base
+FROM node:${NODE_VERSION}-alpine AS base
 
 # Set working directory for all build stages.
 WORKDIR /usr/src/app
@@ -54,7 +53,10 @@ FROM base AS final
 # Use production node environment by default.
 ENV NODE_ENV=production
 
-RUN apk add --no-cache docker-cli docker-compose-plugin
+# Instalar docker-cli y curl, luego descargar docker-compose manualmente
+RUN apk add --no-cache docker-cli curl && \
+    curl -L https://github.com/docker/compose/releases/download/v2.14.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose
 
 # Run the application as a non-root user.
 USER node
