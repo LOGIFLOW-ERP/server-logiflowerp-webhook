@@ -1,15 +1,17 @@
-import express, { Request, Response } from 'express'
+import express, { Request, Response, Router } from 'express'
 import { exec } from 'child_process'
 import { get } from 'env-var'
 
 const app = express()
+const apiRouter = Router()
 const port = get('PORT').required().asPortNumber()
 const token = get('TOKEN').required().asString()
 const pathScripts = get('PATH_SCRIPTS').required().asString()
+const prefix = get('PREFIX').required().asString()
 
 app.use(express.json())
 
-app.post('/', (req: Request, res: Response) => {
+apiRouter.post('/', (req: Request, res: Response) => {
 	try {
 		console.log('¡Webhook recibido!')
 
@@ -63,6 +65,8 @@ app.post('/', (req: Request, res: Response) => {
 		res.status(500).send((error as Error).message)
 	}
 })
+
+app.use(`/api/${prefix}`, apiRouter)
 
 app.listen(port, () => {
 	console.log(`Servidor escuchando en puerto ${port}`)
